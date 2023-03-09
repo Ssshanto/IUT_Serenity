@@ -13,40 +13,81 @@
 
 \begin{lstlisting}[language= Pascal, commentstyle=\color{black}, numberstyle=\tiny\color{black}, keywordstyle=\color{black}, stringstyle=\color{black},
 ]
+" Auto import & Compile
+:autocmd BufNewFile *.cpp 0r ~/template.cpp
+autocmd filetype cpp nnoremap <F9>  :w \| !g++ -std=gnu++2a -Wall -g % -o %:r && ./%:r<CR>
+autocmd filetype cpp inoremap <F9>  <ESC>:w \| !g++ -std=gnu++2a -Wall -g % -o %:r && ./%:r<CR>
+autocmd filetype cpp nnoremap <F10> :w \| !g++ -std=c++17 -Wall -g -DMUSHFIQ_DEBUG -DDBG_MACRO_NO_WARNING % -o %:r && ./%:r<CR>
+autocmd filetype cpp inoremap <F10> <ESC>:w \| !g++ -std=c++17 -Wall -g -DMUSHFIQ_DEBUG -DDBG_MACRO_NO_WARNING % -o %:r && ./%:r<CR>
+autocmd filetype python nnoremap <F9> :w \| !python3 %<CR>
+autocmd filetype python inoremap <F9> <ESC>:w \| !python3 %<CR>
+
+" Auto Completion
+inoremap ( ()<left>
+inoremap <expr> ) strpart(getline('.'), col('.')-1, 1) == ")" ? "\<Right>" : ")"
+inoremap { {}<left>
+inoremap <expr> } strpart(getline('.'), col('.')-1, 1) == "}" ? "\<Right>" : "}"
+inoremap [ []<left>
+inoremap <expr> ] strpart(getline('.'), col('.')-1, 1) == "]" ? "\<Right>" : "]"
+inoremap <expr> " strpart(getline('.'), col('.')-1, 1) == "\"" ? "\<Right>" : "\"\"\<left>"
+inoremap <expr> ' strpart(getline('.'), col('.')-1, 1) == "\'" ? "\<Right>" : "\'\'\<left>"
+
+inoremap <expr> <CR> <sid>insert_newline()
+function s:insert_newline() abort
+  let pair = strpart(getline('.'), col('.')-2, 2)
+  return stridx('(){}[]', pair) % 2 == 0 && strlen(pair) == 2 ? "\<CR>\<ESC>\O" : "\<CR>"
+endfunction
+
+inoremap <expr> <space> <sid>insert_space()
+function s:insert_space() abort
+  let pair = strpart(getline('.'), col('.')-2, 2)
+  return stridx('(){}[]', pair) % 2 == 0 && strlen(pair) == 2 ? "\<space>\<space>\<left>" : "\<space>"
+endfunction
+
+inoremap <expr> <bs> <sid>rm_pair()
+function s:rm_pair() abort
+	let pair = strpart(getline('.'), col('.')-2, 2)
+	return stridx('(){}[]''''""', pair) % 2 == 0 && strlen(pair) == 2 ? "\<del>\<bs>" : "\<bs>"
+endfunction
+
+set nocompatible              " be iMproved, required
+filetype on                  " required
+filetype plugin on
+filetype plugin indent on
+syntax on
 set mouse=a
-  set termguicolors
-  filetype plugin indent on
-  syntax on
+set number
+set relativenumber
+set tabstop=2
+set shiftwidth=2
+set expandtab
+set softtabstop=2
+set smartindent
+set smarttab
+set autoindent
+set cindent
+set noerrorbells
+set ruler
+set guifont=*
+set backspace=indent,eol,start
+set ignorecase
+set incsearch
+set nowrap
+set hlsearch
+" set termguicolors
+set foldmethod=indent
+set nofoldenable
+" set cursorline
+set laststatus=2
+set showcmd
+set wildmenu
+set clipboard=unnamedplus
+set ttymouse=xterm2
 
-" Some useful settings
-  set smartindent expandtab ignorecase smartcase incsearch relativenumber nowrap autoread splitright splitbelow
-  set tabstop=4         "the width of a tab
-  set shiftwidth=4      "the width for indent
-  colorscheme torte
-
-"auto pair curlybraces
-  inoremap {<ENTER> {}<LEFT><CR><ESC><S-o>
-
-" mapping jj to esc
-  inoremap jj <ESC>  
-
-  "compile and run using file input put  
-  autocmd filetype cpp map <F5> :wa<CR>:!clear && g++ % -D LOCAL -std=c++17 -Wall -Wextra -Wconversion -Wshadow -Wfloat-equal -o  ~/Codes/prog && (timeout 5 ~/Codes/prog < ~/Codes/in) >  ~/Codes/out<CR>
-  "copy to input file
-  map <F4> :!xclip -o -sel clip > ~/Codes/in <CR><CR>
-  map <F6> :vsplit ~/Codes/in<CR>:split ~/Codes/out<CR><C-w>=20<C-w><<C-w><C-h>
-
- " Leader key
-  let mapleader=',,'
-
- " Copy template
-  noremap <Leader>t :!cp ~/Codes/temp.cpp %<CR><CR>
-  :autocmd BufNewFile *.cpp 0r ~/Codes/temp.cpp
-
-  "note if vim-features +clipboard is not found, it will not work
-  "for fast check :echo has('clipboard) = 0 if clipboard features not present,
-  "need vim-gtk / vim-gtk3 package for this
-  set clipboard=unnamedplus
+nnoremap <S-j> :m .+1<CR>==
+nnoremap <S-k> :m .-2<CR>==
+vnoremap <S-j> :m '>+1<CR>gv==gv
+vnoremap <S-k> :m '<-2<CR>gv==gv
 \end{lstlisting}
 
 \subsection*{Stress-tester}
