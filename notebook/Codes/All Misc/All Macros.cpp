@@ -13,7 +13,7 @@ template <typename DT>
 using ordered_set = tree <DT, null_type, less<DT>, rb_tree_tag,tree_order_statistics_node_update>;
 
 /*--- DEBUG TEMPLATE STARTS HERE ---*/
-#ifdef SFT
+#ifdef Serenity
 void show(int x) {cerr << x;}
 void show(long long x) {cerr << x;}
 void show(double x) {cerr << x;}
@@ -46,5 +46,7 @@ void debug_out(string s, T t, V... v) {
 #define debug(x...)
 #endif
 
-
-
+mt19937 rnd(chrono::steady_clock::now().time_since_epoch().count());
+uniform_int_distribution<LL>gen(1, 100);
+gen(rnd);
+shuffle(a.begin(), a.end(), rnd);

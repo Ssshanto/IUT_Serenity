@@ -1,61 +1,60 @@
-const int N = 1000006;
+const int N = 1e5+7;
+int a[N];
+LL tr[4*N];
+LL lz[4*N];
 
-using DT = LL;
-using LT = LL;
-constexpr DT I = 0;
-constexpr LT None = 0;
-DT val[4 * N];
-LT lazy[4 * N];
-int L, R;
+///1. Merge left and right
+LL combine (LL left, LL right) {
+  return left + right;
+}
 
-void pull(int s, int e, int node) {
-  val[node] = val[node << 1] + val[node << 1 | 1];
-}
-void apply(const LT &U, int s, int e, int node) {
-  val[node] += (e - s + 1) * U;
-  lazy[node] += U;
-}
-void reset(int node) { lazy[node] = None; }
-DT merge(const DT &a, const DT &b) { return a + b; }
-DT get(int s, int e, int node) { return val[node]; }
-void push(int s, int e, int node) {
-  if (s == e) return;
-  apply(lazy[node], s, s + e >> 1, node << 1);
-  apply(lazy[node], s + e + 2 >> 1, e, node << 1 | 1);
-  reset(node);
-}
-void build(int s, int e, vector<DT> &v, int node = 1) {
-  int m = s + e >> 1;
-  if (s == e) {
-    val[node] = v[s];
-    return;
+///2. Push lazy down and merge lazy
+void propagate(int u, int st, int en) {
+  if (!lz[u]) return;
+  tr[u] += (en-st+1)*lz[u];
+  if (st!=en) {
+    lz[2*u] += lz[u];
+    lz[2*u+1] += lz[u];
   }
-  build(s, m, v, node * 2);
-  build(m + 1, e, v, node * 2 + 1);
-  pull(s, e, node);
+  lz[u] = 0;
 }
-void update(int S, int E, LT uval, int s = L, int e = R, int node = 1) {
-  if (S > E) return;
-  if (S == s and E == e) {
-    apply(uval, s, e, node);
-    return;
+
+
+void build(int u, int st, int en) {
+  if (st==en) {
+    tr[u] = a[st];          ///3. Initialize
+    lz[u] = 0;
   }
-  push(s, e, node);
-  int m = s + e >> 1;
-  update(S, min(m, E), uval, s, m, node * 2);
-  update(max(S, m + 1), E, uval, m + 1, e, node * 2 + 1);
-  pull(s, e, node);
+  else {
+    int mid = (st+en)/2;
+    build(2*u, st, mid);
+    build(2*u+1, mid+1, en);
+    tr[u] = combine(tr[2*u], tr[2*u+1]);
+    lz[u] = 0;              ///3. Initialize
+  }
 }
-DT query(int S, int E, int s = L, int e = R, int node = 1) {
-  if (S > E) return I;
-  if (s == S and e == E) return get(s, e, node);
-  push(s, e, node);
-  int m = s + e >> 1;
-  DT L = query(S, min(m, E), s, m, node * 2);
-  DT R = query(max(S, m + 1), E, m + 1, e, node * 2 + 1);
-  return merge(L, R);
+
+void update(int u, int st, int en, int l, int r, int x) {
+  propagate(u, st, en);
+  if (r<st || en<l)  return;
+  else if (l<=st && en<=r) {
+    lz[u] += x;             ///4. Merge lazy
+    propagate(u, st, en);
+  }
+  else {
+    int mid = (st+en)/2;
+    update(2*u, st, mid, l, r, x);
+    update(2*u+1, mid+1, en, l, r, x);
+    tr[u] = combine(tr[2*u], tr[2*u+1]);
+  }
 }
-void init(int _L, int _R, vector<DT> &v) {
-  L = _L, R = _R;
-  build(L, R, v);
+
+LL query(int u, int st, int en, int l, int r) {
+  propagate(u, st, en);
+if (r<st || en<l)  return 0;        /// 5. Proper null value
+else if (l<=st && en<=r)    return tr[u];
+else {
+  int mid = (st+en)/2;
+  return combine(query(2*u, st, mid, l, r), query(2*u+1, mid+1, en, l, r));
+}
 }

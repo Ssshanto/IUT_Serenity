@@ -1,35 +1,45 @@
-struct Node {
-  Node *l, *r;
-  int sum;
-
-  Node(int val) : l(nullptr), r(nullptr), sum(val) {}
-  Node(Node* l, Node* r) : l(l), r(r), sum(0) {
-    if (l) sum += l->sum;
-    if (r) sum += r->sum;
-  }
+struct Node{
+  int val,left,right;
 };
-
-int a[MAXN];
-Node* root[MAXN];
-
-Node* Build(int bg, int ed) {
-  if (bg == ed) return new Node(a[bg]);
-  int mid = (bg + ed) / 2;
-  return new Node(Build(bg, mid), Build(mid + 1, ed));
+int a[500010],cnt=0,versions[500010];
+Node tree[25*N+15];
+int build(int b,int e){
+  cnt++;
+  int curr=cnt;
+  if(b==e){
+    tree[curr].val=1e9+7;
+    return curr;
+  }
+  int mid=(b+e)/2;
+  tree[curr].left=build(b,mid);
+  tree[curr].right=build(mid+1,e);
+  tree[curr].val=min(tree[tree[curr].left].val,tree[tree[curr].right].val);
+  return curr;
 }
-
-int Query(Node* v, int bg, int ed, int l, int r) {
-  if (l > ed || r < bg) return 0;
-  if (l <= bg && ed <= r) return v->sum;
-  int mid = (bg + ed) / 2;
-  return Query(v->l, bg, mid, l, r) + Query(v->r, mid + 1, ed, l, r);
+int update(int prev,int b,int e,int idx,int x){
+  cnt++;
+  int curr=cnt;
+  if(b==e){
+    tree[curr].val=x;
+    return curr;
+  }
+  int mid=(b+e)/2;
+  if(idx<=mid){
+    tree[curr].left=update(tree[prev].left,b,mid,idx,x);
+    tree[curr].right=tree[prev].right;
+  }
+  else{
+    tree[curr].left=tree[prev].left;
+    tree[curr].right=update(tree[prev].right,mid+1,e,idx,x);
+  }
+  tree[curr].val=min(tree[tree[curr].left].val,tree[tree[curr].right].val);
+  return curr;
 }
-
-Node* Update(Node* v, int bg, int ed, int pos, int new_val) {
-  if (bg == ed) return new Node(v->sum + new_val);
-  int mid = (bg + ed) / 2;
-  if (pos <= mid)
-    return new Node(Update(v->l, bg, mid, pos, new_val), v->r);
-  else
-    return new Node(v->l, Update(v->r, mid + 1, ed, pos, new_val));
+int query(int curr,int b,int e,int l,int r){
+  if(e<l || b>r) return 1e9+7;
+  if(b>=l && e<=r) return tree[curr].val;
+  int mid=(b+e)/2;
+  int q1=query(tree[curr].left,b,mid,l,r);
+  int q2=query(tree[curr].right,mid+1,e,l,r);
+  return min(q1,q2);
 }

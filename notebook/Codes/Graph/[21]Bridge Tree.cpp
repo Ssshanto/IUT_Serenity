@@ -1,43 +1,79 @@
-vector<vector<int>> components;
-vector<int> depth, low;
-stack<int> st;
-vector<int> id;
-vector<edge> bridges;
-graph tree;
-void find_bridges(int node, graph &G, int par = -1, int d = 0) {
-  low[node] = depth[node] = d;
-  st.push(node);
-  for (int id : G[node]) {
-    int to = G(id).to(node);
-    if (par != to) {
-      if (depth[to] == -1) {
-        find_bridges(to, G, node, d + 1);
-        if (low[to] > depth[node]) {
-          bridges.emplace_back(node, to);
-          components.push_back({});
-          for (int x = -1; x != to; x = st.top(), st.pop())
-            components.back().push_back(st.top());
-        }
-      }
-      low[node] = min(low[node], low[to]);
+vector<int>adj[100010];
+bool vis[100010];
+int start[100010],low[100010],dep[100010],par[100010],timer,up[100010][20];
+vector<pair<int,int>>bridges;
+int FindPar(int n){
+  if(par[n]==n) return par[n];
+  par[n]=FindPar(par[n]);
+  return par[n];
+}
+void Merge(int u,int v){
+  u=FindPar(u);
+  v=FindPar(v);
+  if(u!=v) par[v]=u;
+}    
+void dfs(int s,int p){
+  vis[s]=1;
+  timer++;
+  start[s]=timer;
+  low[s]=timer;
+  for(int i=0;i<adj[s].size();i++){
+    int v=adj[s][i];
+    if(v==p) continue;
+    if(vis[v]){
+      low[s]=min(low[s],start[v]);
+      continue;
+    }
+    else{
+      dfs(v,s);
+      low[s]=min(low[s],low[v]);
+      if(low[v]>start[s]) bridges.push_back({s,v});
+      else Merge(s,v);
     }
   }
-  if (par == -1) {
-    components.push_back({});
-    while (!st.empty()) components.back().push_back(st.top()), st.pop();
+}
+void MakeBridgeTree(int n){
+  for(int i=1;i<=n;i++) adj[i].clear();
+  for(auto p: bridges){
+    int u=FindPar(p.first);
+    int v=FindPar(p.second);
+    if(u!=v){
+      adj[u].push_back(v);
+      adj[v].push_back(u);
+    }
   }
 }
-graph &create_tree() {
-  for (auto &comp : components) {
-    int idx = tree.addNode();
-    for (auto &e : comp) id[e] = idx;
+void dfs2(int s,int p){
+  if(p!=-1) up[s][0]=p;
+  for(int i=1;i<=18;i++) up[s][i]=up[up[s][i-1]][i-1];
+    for(int i=0;i<adj[s].size();i++){
+      int v=adj[s][i];
+      if(v==p) continue;
+      dep[v]=dep[s]+1;
+      dfs2(v,s);
+    }
   }
-  for (auto &[l, r] : bridges) tree.addEdge(id[l], id[r]);
-  return tree;
+int LCA(int u,int v){
+  if(dep[u]>dep[v]) swap(u,v);
+  int d=dep[v]-dep[u];
+  for(int i=18;i>=0;i--){
+    if(d&(1<<i)) v=up[v][i];
+  }
+  if(u==v) return u;
+  for(int i=18;i>=0;i--){
+    if(up[u][i]!=up[v][i]){
+      u=up[u][i];
+      v=up[v][i];
+    }
+  }
+  return up[u][0];
 }
-void init(graph &G) {
-  int n = G.n;
-  depth.assign(n, -1), id.assign(n, -1), low.resize(n);
-  for (int i = 0; i < n; i++)
-    if (depth[i] == -1) find_bridges(i, G);
+int GetDistance(int u,int v){
+  return dep[u]+dep[v]-2*dep[LCA(u,v)];
+}
+int Intersect(int lca_ab,int lca_cd,int x,int y){ // x= a or b and y= c or d
+  int lca_xy=LCA(x,y);
+  if(dep[lca_xy]<dep[lca_ab] || dep[lca_xy]<dep[lca_cd]) return 0;
+  int ret=min(dep[lca_xy]-dep[lca_ab],dep[lca_xy]-dep[lca_cd]);
+  return ret;
 }

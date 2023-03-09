@@ -11,6 +11,10 @@ struct Rollback_DSU {
       ;  // no path compression
     return node;
   }
+  int Anc(int node) { // path compression, doesnt work will rollback
+    if(par[node] == node) return node;
+    return par[node] = Anc(par[node]);
+  }
   void Unite(int x, int y) {
     if (sz[x = Anc(x)] < sz[y = Anc(y)]) swap(x, y);
     op.emplace_back(x, y);

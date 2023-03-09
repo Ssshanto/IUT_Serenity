@@ -15,15 +15,7 @@ struct mcmf {
   vector<vector<edge>> g;
   mcmf() {}
   mcmf(int src, int sink, int n)
-      : src(src),
-        sink(sink),
-        n(n),
-        par(n),
-        idx(n),
-        inq(n),
-        dis(n),
-        g(n),
-        Q(10000005) {}  // use Q(n) if not using random
+      : src(src), sink(sink), n(n), par(n), idx(n), inq(n), dis(n), g(n), Q(10000005) {}  // use Q(n) if not using random
   void add_edge(int u, int v, LL cap, LL cost, bool directed = true) {
     edge _u = edge(v, g[v].size(), cap, cost);
     edge _v = edge(u, g[u].size(), 0, -cost);
