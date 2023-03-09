@@ -4,4 +4,4 @@ pdflatex out.tex
 pdflatex out.tex
 cp out.pdf team-notebook.pdf 
 rm out*
-zathura team-notebook.pdf
+atril team-notebook.pdf
